@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <LibRobus.h>
-#include <PololuQTRSensors.h>
+//#include <PololuQTRSensors.h>
 
 //Constantes Défi du parcours:
 const float MAGIC_NUMBER = 0.00035;
@@ -21,9 +21,6 @@ const int PIN_J = 2;
 
 //float SONAR_GetRange(uint8_t 0); un seul sonnar, dans port 1
 
-//Capteur Couleur:
-Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
-
 void reset_ENCODEUR();
 
 void setSameSpeed_MOTORS(float);
@@ -42,11 +39,14 @@ void tourne(uint8_t idMoteur, float angle);
 
 void detection_couleur();
 
+void distance_mur();
+
 void setup() 
 {
   BoardInit();
   
   //Déroulement du parcours:
+  /*
   ligne_droite(20);
   tourne(LEFT, 90);
 
@@ -94,24 +94,19 @@ void setup()
   ligne_droite(80);
   tourne(LEFT, 90);
   ligne_droite(23);
-  tourne(LEFT, 90);
-
-void loop() {
-  detection_couleur();
+  tourne(LEFT, 90);*/
+}
+void loop(){
+  distance_mur();
 }
 
 //-----------------------Fonctions Capteurs:----------------------------
-
-void detection_couleur(){
-  uint16_t clear, red, green, blue;
-  tcs.getRawData(&red, &green, &blue, &clear);
+void distance_mur()
+{
+  float distance = SONAR_GetRange(0);
+  Serial.println(distance);
   delay(1000);
-  Serial.print("C:\t"); Serial.println(clear);
-  Serial.print("\tR:\t"); Serial.println(red);
-  Serial.print("\tG:\t"); Serial.println(green);
-  Serial.print("\tB:\t"); Serial.println(blue);
-  
-
+}
 //--------------------Fonctions Défi du parcours:-------------------------
 
 void reset_ENCODERS()
@@ -217,7 +212,7 @@ void tourne180()
       MOTOR_SetSpeed(LEFT, 0);
     
   }
-  
+}
 void tourne(uint8_t idMoteur, float angle)
 {
   reset_ENCODERS();
