@@ -46,6 +46,8 @@ void suiveur_ligne();
 
 float distanceTotalePulse = distance_pulse(500);
 
+void suiveur_ligne();
+
 void setup() 
 {
   
@@ -108,6 +110,11 @@ void loop(){
   else if((pulse_droit + pulse_gauche)/2 >= distanceTotalePulse){
     setSameSpeed_MOTORS(0);
   }
+ /* uint32_t pulse_droit = ENCODER_Read(RIGHT);
+  uint32_t pulse_gauche = ENCODER_Read(LEFT);
+  correction_moteurs(pulse_gauche, pulse_droit);
+  if(distance_mur() < )*/
+  distance_mur();
 }
 
 //-----------------------Fonctions Capteurs:----------------------------
@@ -130,6 +137,14 @@ void suiveur_ligne()
 void servo() {
   SERVO_SetAngle(1, 90);//MONTER
   SERVO_SetAngle(1, 160);//ABAISSER
+}
+void suiveur_ligne()
+{
+  pinMode(8, OUTPUT);
+  digitalWrite(8, 1);
+  int couleur = analogRead(A4);
+  Serial.println(couleur);
+  delay(1000);
 }
 //--------------------Fonctions Défi du parcours:-------------------------
 
