@@ -11,6 +11,7 @@ const float SPEED_ANGLE = 0.25;
 const float SPEED_LIGNE = 0.5;
 //Constantes Épreuve du combattant:
 
+
 float speed = 0;
 
 //map de l'arduino
@@ -39,45 +40,22 @@ void tourne(uint8_t idMoteur, float angle);
 
 void detection_couleur();
 
-void distance_mur();
+float distance_mur();
+
+void suiveur_ligne();
+
+float distanceTotalePulse = distance_pulse(500);
 
 void setup() 
 {
+  
+  
+  //SERVO_Enable(1);
   BoardInit();
   
+  setSameSpeed_MOTORS(0.3);
   //Déroulement du parcours:
-  /*
-  ligne_droite(20);
-  tourne(LEFT, 90);
-
-  ligne_droite(80);
-  tourne(RIGHT, 90);
-  ligne_droite(23);
-  tourne(RIGHT, 90);
-  ligne_droite(80);
-  tourne(LEFT, 90);
-  ligne_droite(23);
-  tourne(LEFT, 90);
-
-  ligne_droite(80);
-  tourne(RIGHT, 90);
-  ligne_droite(23);
-  tourne(RIGHT, 90);
-  ligne_droite(80);
-  tourne(LEFT, 90);
-  ligne_droite(23);
-  tourne(LEFT, 90);
-
-  ligne_droite(80);
-  tourne(RIGHT, 90);
-  ligne_droite(80);
-  tourne(RIGHT, 90);
-  ligne_droite(80);
-  tourne(LEFT, 90);
-  recule(40);
-  ligne_droite(40);
-  tourne(LEFT, 90);
-
+/*
   ligne_droite(80);
   tourne(RIGHT, 90);
   ligne_droite(23);
@@ -97,15 +75,61 @@ void setup()
   tourne(LEFT, 90);*/
 }
 void loop(){
-  distance_mur();
+  uint32_t pulse_droit = ENCODER_Read(RIGHT);
+  uint32_t pulse_gauche = ENCODER_Read(LEFT);
+  
+  correction_moteurs(pulse_gauche, pulse_droit);
+
+  if(distance_mur() <= 60){
+    distanceTotalePulse -= (pulse_droit + pulse_gauche)/2;
+    setSameSpeed_MOTORS(0);
+    delay(200);
+    reset_ENCODERS();
+    
+    float angle = 46;
+
+    uint32_t pulse_distance_rotation = distance_pulse(distance_angle(angle));
+    uint32_t sous_pulse_droit = 0;
+    int32_t sous_pulse_gauche = 0;
+    while (sous_pulse_droit <= pulse_distance_rotation) {
+    sous_pulse_droit = ENCODER_Read(RIGHT);
+    sous_pulse_gauche = ENCODER_Read(LEFT);
+    
+    if (sous_pulse_droit > pulse_distance_rotation)
+      MOTOR_SetSpeed(RIGHT, 0);
+    if (sous_pulse_gauche < - (int) pulse_distance_rotation)
+      MOTOR_SetSpeed(LEFT, 0);
+
+    }
+    setSameSpeed_MOTORS(0);
+    delay(200);
+    reset_ENCODERS();
+  }
+  else if((pulse_droit + pulse_gauche)/2 >= distanceTotalePulse){
+    setSameSpeed_MOTORS(0);
+  }
 }
 
 //-----------------------Fonctions Capteurs:----------------------------
-void distance_mur()
+float distance_mur()
 {
   float distance = SONAR_GetRange(0);
   Serial.println(distance);
   delay(1000);
+  return distance;
+}
+void suiveur_ligne()
+{
+  pinMode(8, OUTPUT);
+  digitalWrite(8, 1);
+  int couleur = analogRead(A4);
+  Serial.println(couleur);
+  delay(1000);
+}
+
+void servo() {
+  SERVO_SetAngle(1, 90);//MONTER
+  SERVO_SetAngle(1, 160);//ABAISSER
 }
 //--------------------Fonctions Défi du parcours:-------------------------
 
