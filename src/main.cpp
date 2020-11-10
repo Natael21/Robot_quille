@@ -41,43 +41,14 @@ void detection_couleur();
 
 void distance_mur();
 
+void suiveur_ligne();
+
 void setup() 
 {
   BoardInit();
-  
+  //setSameSpeed_MOTORS(0.3);
   //Déroulement du parcours:
-  /*
-  ligne_droite(20);
-  tourne(LEFT, 90);
-
-  ligne_droite(80);
-  tourne(RIGHT, 90);
-  ligne_droite(23);
-  tourne(RIGHT, 90);
-  ligne_droite(80);
-  tourne(LEFT, 90);
-  ligne_droite(23);
-  tourne(LEFT, 90);
-
-  ligne_droite(80);
-  tourne(RIGHT, 90);
-  ligne_droite(23);
-  tourne(RIGHT, 90);
-  ligne_droite(80);
-  tourne(LEFT, 90);
-  ligne_droite(23);
-  tourne(LEFT, 90);
-
-  ligne_droite(80);
-  tourne(RIGHT, 90);
-  ligne_droite(80);
-  tourne(RIGHT, 90);
-  ligne_droite(80);
-  tourne(LEFT, 90);
-  recule(40);
-  ligne_droite(40);
-  tourne(LEFT, 90);
-
+/*
   ligne_droite(80);
   tourne(RIGHT, 90);
   ligne_droite(23);
@@ -97,6 +68,10 @@ void setup()
   tourne(LEFT, 90);*/
 }
 void loop(){
+ /* uint32_t pulse_droit = ENCODER_Read(RIGHT);
+  uint32_t pulse_gauche = ENCODER_Read(LEFT);
+  correction_moteurs(pulse_gauche, pulse_droit);
+  if(distance_mur() < )*/
   distance_mur();
 }
 
@@ -105,6 +80,14 @@ void distance_mur()
 {
   float distance = SONAR_GetRange(0);
   Serial.println(distance);
+  delay(1000);
+}
+void suiveur_ligne()
+{
+  pinMode(8, OUTPUT);
+  digitalWrite(8, 1);
+  int couleur = analogRead(A4);
+  Serial.println(couleur);
   delay(1000);
 }
 //--------------------Fonctions Défi du parcours:-------------------------
