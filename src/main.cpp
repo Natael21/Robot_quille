@@ -22,7 +22,7 @@ const int PIN_J = 2;
 
 //float SONAR_GetRange(uint8_t 0); un seul sonnar, dans port 1
 
-void reset_ENCODEUR();
+void reset_ENCODERS();
 
 void setSameSpeed_MOTORS(float);
 
@@ -42,47 +42,27 @@ void detection_couleur();
 
 float distance_mur();
 
-void suiveur_ligne();
+//void suiveur_ligne();
 
 float distanceTotalePulse = distance_pulse(500);
-
-void suiveur_ligne();
 
 void setup() 
 {
   
-  
   //SERVO_Enable(1);
   BoardInit();
   
-  setSameSpeed_MOTORS(0.3);
-  //Déroulement du parcours:
-/*
-  ligne_droite(80);
-  tourne(RIGHT, 90);
-  ligne_droite(23);
-  tourne(RIGHT, 90);
-  ligne_droite(80);
-  tourne(LEFT, 90);
-  ligne_droite(23);
-  tourne(LEFT, 90);
-
-  ligne_droite(80);
-  tourne(RIGHT, 90);
-  ligne_droite(23);
-  tourne(RIGHT, 90);
-  ligne_droite(80);
-  tourne(LEFT, 90);
-  ligne_droite(23);
-  tourne(LEFT, 90);*/
+ 
 }
 void loop(){
+  while(!ROBUS_IsBumper(3)){}
+  setSameSpeed_MOTORS(0.3);
   uint32_t pulse_droit = ENCODER_Read(RIGHT);
   uint32_t pulse_gauche = ENCODER_Read(LEFT);
   
   correction_moteurs(pulse_gauche, pulse_droit);
 
-  if(distance_mur() <= 60){
+  if(distance_mur() <= 45){
     distanceTotalePulse -= (pulse_droit + pulse_gauche)/2;
     setSameSpeed_MOTORS(0);
     delay(200);
@@ -94,13 +74,16 @@ void loop(){
     uint32_t sous_pulse_droit = 0;
     int32_t sous_pulse_gauche = 0;
     while (sous_pulse_droit <= pulse_distance_rotation) {
-    sous_pulse_droit = ENCODER_Read(RIGHT);
-    sous_pulse_gauche = ENCODER_Read(LEFT);
+      sous_pulse_droit = ENCODER_Read(RIGHT);
+      sous_pulse_gauche = ENCODER_Read(LEFT);
+
+      MOTOR_SetSpeed(RIGHT, SPEED_ANGLE);
+      MOTOR_SetSpeed(LEFT, -SPEED_ANGLE); 
     
-    if (sous_pulse_droit > pulse_distance_rotation)
-      MOTOR_SetSpeed(RIGHT, 0);
-    if (sous_pulse_gauche < - (int) pulse_distance_rotation)
-      MOTOR_SetSpeed(LEFT, 0);
+      if (sous_pulse_droit > pulse_distance_rotation)
+        MOTOR_SetSpeed(RIGHT, 0);
+      if (sous_pulse_gauche < - (int) pulse_distance_rotation)
+        MOTOR_SetSpeed(LEFT, 0);
 
     }
     setSameSpeed_MOTORS(0);
@@ -114,38 +97,68 @@ void loop(){
   uint32_t pulse_gauche = ENCODER_Read(LEFT);
   correction_moteurs(pulse_gauche, pulse_droit);
   if(distance_mur() < )*/
-  distance_mur();
 }
 
 //-----------------------Fonctions Capteurs:----------------------------
 float distance_mur()
 {
-  float distance = SONAR_GetRange(0);
+  float distance;
+  for(int i = 0; i < 3; i++){
+    distance = SONAR_GetRange(0);
+  }
+  
   Serial.println(distance);
-  delay(1000);
   return distance;
 }
-void suiveur_ligne()
+/*void suiveur_ligne()
 {
   pinMode(8, OUTPUT);
   digitalWrite(8, 1);
-  int couleur = analogRead(A4);
-  Serial.println(couleur);
-  delay(1000);
-}
+  while(ENCODER_Read(0) < 68000)
+  {
+    int pin1 = analogRead(A4);
+    int pin2 = analogRead(A5);
+    int pin6 = analogRead(A9);
+    int pin7 = analogRead(A10);
+    Serial.print(pin1);
+    Serial.print("\t");
+    Serial.print(pin2);
+    Serial.print("\t");
+    Serial.print(pin6);
+    Serial.print("\t");
+    Serial.print(pin7);
+    Serial.print("\n");
+    setSameSpeed_MOTORS(0.2);
+    if(pin1 < 40)
+    {
+      MOTOR_SetSpeed(0, 0.22);
+      MOTOR_SetSpeed(1, 0.2);
 
-void servo() {
-  SERVO_SetAngle(1, 90);//MONTER
-  SERVO_SetAngle(1, 160);//ABAISSER
-}
-void suiveur_ligne()
-{
-  pinMode(8, OUTPUT);
-  digitalWrite(8, 1);
-  int couleur = analogRead(A4);
-  Serial.println(couleur);
-  delay(1000);
-}
+      //tourne un peu a droite
+    }
+    if(pin7 < 40)
+    {
+      MOTOR_SetSpeed(1, 0.21);
+      MOTOR_SetSpeed(0, 0.20);
+      //tourne un peu à gauche
+    }
+    if(pin2 >= 40)
+    {
+      MOTOR_SetSpeed(1, 0.21);
+      MOTOR_SetSpeed(0, 0.20);
+      //tourne un peu à gauche
+    }
+    if(pin6 >= 40)
+    {
+      MOTOR_SetSpeed(1, 0.2);
+      MOTOR_SetSpeed(0, 0.21);
+      //tourne un peu à droite
+    }
+  }
+  
+  delay(100);
+}*/
+
 //--------------------Fonctions Défi du parcours:-------------------------
 
 void reset_ENCODERS()
