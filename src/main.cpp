@@ -51,8 +51,6 @@ float distanceTotalePulse = distance_pulse(500);
 
 void setup() 
 {
-  
-  //SERVO_Enable(1);
   BoardInit();
   distanceTotalePulse = distance_pulse(435);
   while(!ROBUS_IsBumper(3)){}
