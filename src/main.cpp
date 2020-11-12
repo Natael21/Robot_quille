@@ -65,7 +65,7 @@ void loop(){
     distanceTotalePulse -= (pulse_droit + pulse_gauche)/2;
     delay(200);
     tourne90(LEFT);
-    ligne_droite(60, SPEED_QUILLE, SPEED_QUILLE);
+    ligne_droite(70, SPEED_QUILLE, SPEED_QUILLE);
     tourne90(RIGHT);
     quilleAEteDetectee = true;
   }
