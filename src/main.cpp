@@ -22,6 +22,10 @@ const int PIN_J = 2;
 
 //float SONAR_GetRange(uint8_t 0); un seul sonnar, dans port 1
 
+void tourne_droite(int, float);
+
+void tourne_gauche(int, float);
+
 void reset_ENCODEUR();
 
 void setSameSpeed_MOTORS(float);
@@ -138,6 +142,7 @@ void servo() {
   SERVO_SetAngle(1, 90);//MONTER
   SERVO_SetAngle(1, 160);//ABAISSER
 }
+
 void suiveur_ligne()
 {
   pinMode(8, OUTPUT);
@@ -152,6 +157,32 @@ void reset_ENCODERS()
 {
   ENCODER_Reset(RIGHT);
   ENCODER_Reset(LEFT);
+}
+
+void tourne_gauche(int i, float angle)
+{
+  //Serial.println("troune_gauche");
+  while(ENCODER_Read(1) <= (-1*angle*16000))
+  {
+    MOTOR_SetSpeed(0, 0);
+    MOTOR_SetSpeed(1, 0.35);
+  }
+    
+  ENCODER_Reset(0);
+  ENCODER_Reset(1);
+}
+
+
+void tourne_droite(int i, float angle)
+{    
+  while(ENCODER_Read(0) <= angle*16000)
+  {
+    MOTOR_SetSpeed(0, 0.35);
+    MOTOR_SetSpeed(1, 0);
+  }
+    
+  ENCODER_Reset(0);
+  ENCODER_Reset(1);
 }
 
 void setSameSpeed_MOTORS(float speed)
