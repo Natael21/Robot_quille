@@ -21,6 +21,9 @@ const int PIN_B = 8;
 const int PIN_R = 3;
 const int PIN_J = 2;
 
+const int PIN_SIFFLET = 13;
+const int SIFFLET_MIN = 620;
+const int SIFFLET_MAX = 710;
 //float SONAR_GetRange(uint8_t 0); un seul sonnar, dans port 1
 
 void reset_ENCODERS();
@@ -45,42 +48,79 @@ void detection_couleur();
 
 float distance_mur();
 
+void tourne_gauche(float);
+
+void tourne_droite(float);
+
+int detection_sifflet();
 //void suiveur_ligne();
 
 float distanceTotalePulse = distance_pulse(500);
 
-void setup() 
+void setup()
 {
   BoardInit();
-  distanceTotalePulse = distance_pulse(435);
-  while(!ROBUS_IsBumper(3)){}
+  distanceTotalePulse = distance_pulse(405);
+  //while(detection_sifflet() != 1){}
+  while (!ROBUS_IsBumper(3))
+  {
+  }
   ligne_droite(35, SPEED_QUILLE, SPEED_QUILLE);
 }
-void loop(){
+void loop()
+{
   uint32_t pulse_droit = ENCODER_Read(RIGHT);
   uint32_t pulse_gauche = ENCODER_Read(LEFT);
-  
-  if(distance_mur() <= 60 && distance_mur() >= 20 && !quilleAEteDetectee){
-    
-    distanceTotalePulse -= (pulse_droit + pulse_gauche)/2;
+  Serial.print("pulses lus: ");
+  Serial.println((pulse_droit + pulse_gauche) / 2);
+  Serial.print("distance totale:");
+  Serial.println(distanceTotalePulse);
+  float distance_sonar = distance_mur();
+  if (distance_sonar <= 60 && distance_sonar >= 20 && !quilleAEteDetectee)
+  {
+    /*if(ENCODER_Read(0) >= distance_pulse(205) && ENCODER_Read(0) <= distance_pulse(235))
+    {
+      Serial.println("delai commencer");
+      delay(10000);
+    }*/
+    distanceTotalePulse -= (pulse_droit + pulse_gauche) / 2;
+    ligne_droite(6, SPEED_QUILLE, SPEED_QUILLE);
     delay(200);
     tourne90(LEFT);
-    ligne_droite(70, SPEED_QUILLE, SPEED_QUILLE);
+    Serial.println("tourne90 GAUCHE");
+    ligne_droite(55, SPEED_QUILLE, SPEED_QUILLE);
+    Serial.println("ligne droite");
+    delay(200);
     tourne90(RIGHT);
+    Serial.println("tourne90 DROITE");
+    //ligne_droite(distanceTotalePulse / 3200 * 23.94, SPEED_QUILLE, SPEED_QUILLE);
+    Serial.println("ligne droite 2");
     quilleAEteDetectee = true;
   }
-  else if((pulse_droit + pulse_gauche)/2 >= distanceTotalePulse){
-    setSameSpeed_MOTORS(0);
+  else if ((pulse_droit + pulse_gauche) / 2 >= distanceTotalePulse)
+  {
+    speed = 0;
+    setSameSpeed_MOTORS(speed);
     Serial.println("fin");
+    if(!quilleAEteDetectee){
+      tourne90(LEFT);
+      ligne_droite(50, SPEED_QUILLE, SPEED_QUILLE);
+      tourne90(RIGHT);
+      speed = 0;
+      setSameSpeed_MOTORS(speed);
+      quilleAEteDetectee = true;
+    }
+    //Finir en tournant à gauche
   }
   else
   {
-    if(speed <= SPEED_QUILLE){
+    if (speed <= SPEED_QUILLE)
+    {
       speed += 0.005;
     }
-    delay (MAGIC_DELAY_LD);
+    delay(MAGIC_DELAY_LD);
     correction_moteurs(pulse_gauche, pulse_droit);
-    
+    Serial.println("speed");
   }
   Serial.println(speed);
 }
@@ -90,7 +130,8 @@ float distance_mur()
 {
   const int NB_VERIFICATIONS = 1;
   float tab_distance[NB_VERIFICATIONS] = {};
-  for(int i = 0; i < NB_VERIFICATIONS; i++){
+  for (int i = 0; i < NB_VERIFICATIONS; i++)
+  {
     tab_distance[i] = SONAR_GetRange(0);
   }
   /*
@@ -102,63 +143,30 @@ float distance_mur()
   }
   Serial.println(tab_distance[NB_VERIFICATIONS-1]);
   if(memeDistances){
-    */return tab_distance[NB_VERIFICATIONS-1];/*
+    */
+  return tab_distance[NB_VERIFICATIONS - 1]; /*
   }
   else {
     return 500.0;
   }*/
 }
 
-/*void suiveur_ligne()
-{
-  pinMode(8, OUTPUT);
-  digitalWrite(8, 1);
-  while(ENCODER_Read(0) < 68000)
-  {
-    int pin1 = analogRead(A4);
-    int pin2 = analogRead(A5);
-    int pin6 = analogRead(A9);
-    int pin7 = analogRead(A10);
-    Serial.print(pin1);
-    Serial.print("\t");
-    Serial.print(pin2);
-    Serial.print("\t");
-    Serial.print(pin6);
-    Serial.print("\t");
-    Serial.print(pin7);
-    Serial.print("\n");
-    setSameSpeed_MOTORS(0.2);
-    if(pin1 < 40)
-    {
-      MOTOR_SetSpeed(0, 0.22);
-      MOTOR_SetSpeed(1, 0.2);
-
-      //tourne un peu a droite
-    }
-    if(pin7 < 40)
-    {
-      MOTOR_SetSpeed(1, 0.21);
-      MOTOR_SetSpeed(0, 0.20);
-      //tourne un peu à gauche
-    }
-    if(pin2 >= 40)
-    {
-      MOTOR_SetSpeed(1, 0.21);
-      MOTOR_SetSpeed(0, 0.20);
-      //tourne un peu à gauche
-    }
-    if(pin6 >= 40)
-    {
-      MOTOR_SetSpeed(1, 0.2);
-      MOTOR_SetSpeed(0, 0.21);
-      //tourne un peu à droite
-    }
-  }
-  
-  delay(100);
-}*/
-
 //--------------------Fonctions Défi du parcours:-------------------------
+int detection_sifflet()
+{
+  int voltage;
+  voltage = analogRead(PIN_SIFFLET);
+  Serial.print(voltage);
+  Serial.print("\n");
+  if (voltage >= SIFFLET_MIN)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
 
 void reset_ENCODERS()
 {
@@ -187,22 +195,25 @@ float distance_angle(float angle)
 void correction_moteurs(uint32_t pulse_gauche, uint32_t pulse_droit)
 {
   float erreur;
-  
-  if(pulse_droit > pulse_gauche) {
+
+  if (pulse_droit > pulse_gauche)
+  {
     erreur = (pulse_droit - pulse_gauche) * MAGIC_NUMBER;
     MOTOR_SetSpeed(LEFT, speed + erreur);
     MOTOR_SetSpeed(RIGHT, speed - erreur);
   }
-  else {
+  else
+  {
     erreur = (pulse_gauche - pulse_droit) * MAGIC_NUMBER;
     MOTOR_SetSpeed(LEFT, speed - erreur);
     MOTOR_SetSpeed(RIGHT, speed + erreur);
   }
 }
 
-void ligne_droite(int distance, float vitesseMax, float vitesseMin){
+void ligne_droite(int distance, float vitesseMax, float vitesseMin)
+{
   reset_ENCODERS();
-  
+
   uint32_t pulse_droit = 0;
   uint32_t pulse_gauche = 0;
   uint32_t pulse_attendu = distance_pulse(distance);
@@ -211,26 +222,26 @@ void ligne_droite(int distance, float vitesseMax, float vitesseMin){
   {
     pulse_droit = ENCODER_Read(RIGHT);
     pulse_gauche = ENCODER_Read(LEFT);
-    
-    if(pulse_droit <= pulse_attendu * 0.6 )// || pulse_gauche <= pulse_attendu * 0.8
+
+    if (pulse_droit <= pulse_attendu * 0.6) // || pulse_gauche <= pulse_attendu * 0.8
     {
-      if(speed <= vitesseMax)
+      if (speed <= vitesseMax)
       {
-        speed += 0.005;//2 secondes: 0 => 0.4 ou 2 secondes: 0 => 0.5 pour 0.00625
+        speed += 0.005; //2 secondes: 0 => 0.4 ou 2 secondes: 0 => 0.5 pour 0.00625
       }
     }
 
-    else if(pulse_droit >= pulse_attendu * 0.6 && pulse_droit <= pulse_attendu * 0.9)
+    else if (pulse_droit >= pulse_attendu * 0.6 && pulse_droit <= pulse_attendu * 0.9)
     {
-      if(speed >= vitesseMin)
+      if (speed >= vitesseMin)
       {
-        speed -= 0.005;//1 seconde: 0.5 => 0.3 (-0.2)
+        speed -= 0.005; //1 seconde: 0.5 => 0.3 (-0.2)
       }
     }
     setSameSpeed_MOTORS(speed);
 
     correction_moteurs(pulse_gauche, pulse_droit);
-    delay (MAGIC_DELAY_LD);//40 fois / seconde
+    delay(MAGIC_DELAY_LD); //40 fois / seconde
   }
   reset_ENCODERS();
 }
@@ -240,66 +251,74 @@ void tourne180()
   delay(200);
   reset_ENCODERS();
   setSameSpeed_MOTORS(0);
-  
+
   float angle = 93;
 
   uint32_t pulse_distance = distance_pulse(distance_angle(angle));
   uint32_t pulse_droit = 0;
   int32_t pulse_gauche = 0;
-  
+
   MOTOR_SetSpeed(RIGHT, SPEED_ANGLE);
   MOTOR_SetSpeed(LEFT, -SPEED_ANGLE);
-  
+
   while (pulse_droit <= pulse_distance)
   {
     pulse_droit = ENCODER_Read(RIGHT);
     pulse_gauche = ENCODER_Read(LEFT);
-    
+
     if (pulse_droit > pulse_distance)
       MOTOR_SetSpeed(RIGHT, 0);
-    if (pulse_gauche < - (int) pulse_distance)
+    if (pulse_gauche < -(int)pulse_distance)
       MOTOR_SetSpeed(LEFT, 0);
   }
 }
 
-void tourne90(uint8_t direction){
+void tourne90(uint8_t direction)
+{
   setSameSpeed_MOTORS(0);
   delay(200);
   reset_ENCODERS();
 
-  float angle = 41;//43.5;
+  float angle = 42.5;
 
-  uint32_t pulse_distance_rotation = distance_pulse(distance_angle(angle));
-  uint32_t sous_pulse_droit = 0;
+  int32_t pulse_distance_rotation = distance_pulse(distance_angle(angle));
+  int32_t sous_pulse_droit = 0;
   int32_t sous_pulse_gauche = 0;
+  if (direction == LEFT)
+  {
+    while (sous_pulse_droit <= pulse_distance_rotation)
+    {
+      sous_pulse_droit = ENCODER_Read(RIGHT);
+      sous_pulse_gauche = ENCODER_Read(LEFT);
 
-  while (sous_pulse_droit <= pulse_distance_rotation) {
-    sous_pulse_droit = ENCODER_Read(RIGHT);
-    sous_pulse_gauche = ENCODER_Read(LEFT);
-    if(direction == LEFT){
       MOTOR_SetSpeed(RIGHT, speed);
       MOTOR_SetSpeed(LEFT, -speed);
       delay(20);
-      
+
       if (sous_pulse_droit > pulse_distance_rotation)
         MOTOR_SetSpeed(RIGHT, 0);
-      if (sous_pulse_gauche < - (int) pulse_distance_rotation)
+      if (sous_pulse_gauche < -pulse_distance_rotation)
         MOTOR_SetSpeed(LEFT, 0);
-        
     }
-    else {
+  }
+  else
+  {
+    while (sous_pulse_gauche <= pulse_distance_rotation)
+    {
+      sous_pulse_droit = ENCODER_Read(RIGHT);
+      sous_pulse_gauche = ENCODER_Read(LEFT);
       MOTOR_SetSpeed(RIGHT, -speed);
-      MOTOR_SetSpeed(LEFT, speed); 
+      MOTOR_SetSpeed(LEFT, speed);
       delay(20);
 
-      if (sous_pulse_droit < - (int) pulse_distance_rotation)
+      if (sous_pulse_droit < -pulse_distance_rotation)
         MOTOR_SetSpeed(RIGHT, 0);
       if (sous_pulse_gauche > pulse_distance_rotation)
         MOTOR_SetSpeed(LEFT, 0);
-      
     }
   }
-  //setSameSpeed_MOTORS(0);//MODIFIÉs
+  speed = 0;
+  setSameSpeed_MOTORS(speed); //MODIFIÉs
   delay(200);
   reset_ENCODERS();
 }
@@ -307,22 +326,24 @@ void tourne90(uint8_t direction){
 void tourne(uint8_t idMoteur, float angle)
 {
   reset_ENCODERS();
-  
+
   uint32_t pulse_distance = distance_pulse(distance_angle(angle));
   uint32_t pulse = 0;
-  
+
   MOTOR_SetSpeed(idMoteur, 0);
 
   uint8_t autreMoteur;
 
-  if(idMoteur == 0){
+  if (idMoteur == 0)
+  {
     autreMoteur = 1;
     Serial.print("tourne à gauche de ");
     Serial.println(angle);
     Serial.print("Moteur: ");
     Serial.println(autreMoteur);
   }
-  else {
+  else
+  {
     autreMoteur = 0;
     Serial.print("tourne à droite de ");
     Serial.println(angle);
@@ -337,6 +358,27 @@ void tourne(uint8_t idMoteur, float angle)
   delay(200);
   MOTOR_SetSpeed(idMoteur, speed);
 }
+void tourne_gauche(float angle)
+{
+  //Serial.println("troune_gauche");
+  while (ENCODER_Read(1) <= (-1 * angle * 16000))
+  {
+    MOTOR_SetSpeed(0, 0);
+    MOTOR_SetSpeed(1, 0.35);
+  }
 
+  ENCODER_Reset(0);
+  ENCODER_Reset(1);
+}
 
-  
+void tourne_droite(float angle)
+{
+  while (ENCODER_Read(0) <= angle * 16000)
+  {
+    MOTOR_SetSpeed(0, 0.35);
+    MOTOR_SetSpeed(1, 0);
+  }
+
+  ENCODER_Reset(0);
+  ENCODER_Reset(1);
+}
