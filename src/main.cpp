@@ -21,9 +21,17 @@ const int PIN_B = 8;
 const int PIN_R = 3;
 const int PIN_J = 2;
 
+<<<<<<< HEAD
 const int PIN_SIFFLET = 13;
 const int SIFFLET_MIN = 620;
 const int SIFFLET_MAX = 710;
+=======
+//ANALOG IN
+const int PIN_SIFFLET = 13;
+const int SIFFLET_MIN = 620;
+const int SIFFLET_MAX = 710;
+
+>>>>>>> 575a6df0ff0ef2434450d18f70e99a164f1d445c
 //float SONAR_GetRange(uint8_t 0); un seul sonnar, dans port 1
 
 void reset_ENCODERS();
@@ -48,11 +56,16 @@ void detection_couleur();
 
 float distance_mur();
 
+<<<<<<< HEAD
 void tourne_gauche(float);
 
 void tourne_droite(float);
 
 int detection_sifflet();
+=======
+int detection_sifflet();
+
+>>>>>>> 575a6df0ff0ef2434450d18f70e99a164f1d445c
 //void suiveur_ligne();
 
 float distanceTotalePulse = distance_pulse(500);
@@ -60,11 +73,17 @@ float distanceTotalePulse = distance_pulse(500);
 void setup()
 {
   BoardInit();
+<<<<<<< HEAD
   distanceTotalePulse = distance_pulse(405);
   //while(detection_sifflet() != 1){}
   while (!ROBUS_IsBumper(3))
   {
   }
+=======
+  distanceTotalePulse = distance_pulse(430);
+  while(detection_sifflet() != 1){}
+  //while(!ROBUS_IsBumper(3)){}
+>>>>>>> 575a6df0ff0ef2434450d18f70e99a164f1d445c
   ligne_droite(35, SPEED_QUILLE, SPEED_QUILLE);
 }
 void loop()
@@ -126,6 +145,24 @@ void loop()
 }
 
 //-----------------------Fonctions Capteurs:----------------------------
+
+int detection_sifflet(){
+  int voltage;
+  voltage = analogRead(PIN_SIFFLET);
+  Serial.print(voltage);
+  Serial.print("\n");
+  if (voltage >= SIFFLET_MIN)
+  {
+    return 1;
+  }
+  else 
+  {
+    return 0;
+  }
+}
+
+
+
 float distance_mur()
 {
   const int NB_VERIFICATIONS = 1;
